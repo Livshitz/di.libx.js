@@ -1,5 +1,5 @@
 import { Deferred } from 'concurrency.libx.js';
-import Helpers from './helpers';
+import Helpers from './Helpers';
 
 export default class DependencyInjector {
     public modules = {};
