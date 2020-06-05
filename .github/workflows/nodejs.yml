@@ -1,0 +1,42 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Node.js CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    if: "false" # Remove if you want to use Github Actions for CI/CD
+    if: "!contains(github.event.head_commit.message, 'skip-ci')"
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+    - uses: actions/checkout@v2
+    # Setup .npmrc file to publish to npm
+    - uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+        registry-url: 'https://registry.npmjs.org'
+        scope: '@octocat' # Defaults to the user or organization that owns the workflow file:  
+    - run: yarn --frozen-lockfile
+    - run: yarn build
+    - run: yarn test
+    - run: |
+        git config --global push.default simple
+        git config user.email "elya@guesty.com"
+        git config user.name "Elya Livshitz"
+        yarn bump
+        # git commit --amend -m "^ pkg bump ($npm_package_version) [skip ci]"
+        git push origin 
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
