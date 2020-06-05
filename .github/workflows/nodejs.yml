@@ -11,7 +11,6 @@ on:
 
 jobs:
   build:
-    if: "false" # Remove if you want to use Github Actions for CI/CD
     if: "!contains(github.event.head_commit.message, 'skip-ci')"
 
     runs-on: ubuntu-latest
