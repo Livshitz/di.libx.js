@@ -9,58 +9,57 @@ class MyClass {
 
 describe('dependencyInjector tests', () => {
     let di: DependencyInjector;
-    
+
     function myFunc() {
         return 1;
     }
 
-    const myFuncAnonymous = ()=>2;
-    
+    const myFuncAnonymous = () => 2;
 
-	beforeEach(async (done)=> {
+    beforeEach(async (done) => {
         di = new DependencyInjector();
-		done();
+        done();
     });
-      
-	test('dependencyInjector-get-backwardCompatibility', async (done) => {
+
+    test('dependencyInjector-get-backwardCompatibility', async (done) => {
         di.register('a', <any>myFunc); // args order was opposite
         let x: typeof myFunc = di.get('a');
-		expect(typeof x).toBe(typeof myFunc);
+        expect(typeof x).toBe(typeof myFunc);
         let res = x();
-		expect(res).toBe(1);
-		done();
+        expect(res).toBe(1);
+        done();
     });
 
-	test('dependencyInjector-get-explicityName', async (done) => {
+    test('dependencyInjector-get-explicityName', async (done) => {
         di.register(myFunc, 'a');
         let x: typeof myFunc = di.get('a');
-		expect(typeof x).toBe(typeof myFunc);
+        expect(typeof x).toBe(typeof myFunc);
         let res = x();
-		expect(res).toBe(1);
-		done();
+        expect(res).toBe(1);
+        done();
     });
-  
+
     test('dependencyInjector-get-implicitName', async (done) => {
         di.register(myFunc);
         let x: typeof myFunc = di.get(myFunc.name);
-		expect(typeof x).toBe(typeof myFunc);
+        expect(typeof x).toBe(typeof myFunc);
         let res = x();
-		expect(res).toBe(1);
-		done();
+        expect(res).toBe(1);
+        done();
     });
-    
+
     test('dependencyInjector-get-anonymousFunc', async (done) => {
         di.register(myFuncAnonymous, 'a');
         let x: typeof myFunc = di.get('a');
-		expect(typeof x).toBe(typeof myFunc);
+        expect(typeof x).toBe(typeof myFunc);
         let res = x();
-		expect(res).toBe(2);
-		done();
+        expect(res).toBe(2);
+        done();
     });
 
     test('dependencyInjector-get-class-explicityName', async (done) => {
         di.register(new MyClass(), 'myClass');
-        await di.require((myClass: MyClass)=> {
+        await di.require((myClass: MyClass) => {
             let res = myClass.clasFunc();
             expect(res).toBe(10);
             done();
@@ -70,7 +69,7 @@ describe('dependencyInjector tests', () => {
     test('dependencyInjector-get-class-implicitName', async (done) => {
         let myClass = new MyClass();
         di.register(myClass);
-        await di.require((MyClass: MyClass)=> {
+        await di.require((MyClass: MyClass) => {
             let res = MyClass.clasFunc();
             expect(res).toBe(10);
             done();
@@ -81,13 +80,13 @@ describe('dependencyInjector tests', () => {
         di.register(myFunc, '_myFunc');
         di.register(new MyClass(), 'myClass');
 
-        await di.registerResolve('combo', (_myFunc: typeof myFunc, myClass: MyClass)=> {
+        await di.registerResolve('combo', (_myFunc: typeof myFunc, myClass: MyClass) => {
             expect(_myFunc()).toBe(1);
             expect(myClass.clasFunc()).toBe(10);
-            return ()=>20;
+            return () => 20;
         });
 
-        di.require(combo=>{
+        di.require(combo => {
             expect(combo()).toBe(20);
             done();
         })
@@ -95,7 +94,7 @@ describe('dependencyInjector tests', () => {
 
     test('dependencyInjector-require', async (done) => {
         di.register(myFunc);
-        await di.require((myFunc)=> {
+        await di.require((myFunc) => {
             let res = myFunc();
             expect(res).toBe(1);
             done();
@@ -104,7 +103,7 @@ describe('dependencyInjector tests', () => {
 
     test('dependencyInjector-requireUgly', async (done) => {
         di.register(myFunc);
-        await di.requireUgly(['myFunc'], (newFuncName)=> {
+        await di.requireUgly(['myFunc'], (newFuncName) => {
             let res = newFuncName();
             expect(res).toBe(1);
             done();
@@ -122,7 +121,7 @@ describe('dependencyInjector tests', () => {
 
     test('dependencyInjector-require-async-waitUntilReady', async (done) => {
         let start = new Date().getTime();
-        setTimeout(()=>{
+        setTimeout(() => {
             di.register(myFunc);
         }, 100);
         await di.require(myFunc => {
@@ -161,14 +160,14 @@ describe('dependencyInjector tests', () => {
         done();
     });
 
-	test('dependencyInjector-inject', async (done) => {
+    test('dependencyInjector-inject', async (done) => {
         di.register(myFunc, 'myFunc');
         let res = null;
-        di.inject((myFunc)=>{
+        di.inject((myFunc) => {
             res = myFunc();
         });
-		expect(res).toBe(1);
-		done();
+        expect(res).toBe(1);
+        done();
     });
 
 })
