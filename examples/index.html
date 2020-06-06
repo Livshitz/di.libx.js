@@ -1,0 +1,38 @@
+<html>
+	<head>
+		<!-- <script src="https://cdn.jsdelivr.net/npm/di.libx.js@latest/dist/browser.min.js"></script> -->
+		<script src="../dist/browser.min.js"></script>
+	</head>
+	<body>
+		<h3>Examples</h3>
+		<p>Open devtools to see console logs</p>
+		<button id="button" onclick="run()" autofocus="true">Run!</button>
+	</body>
+	<script>
+		console.log('- loaded!')
+
+		run = async ()=> {
+			console.log('- Starting...')
+
+			const myFunc = ()=>{
+				console.log('This is myFunc');
+			}
+
+			// Register a dependencies
+			libx.di.register(myFunc, 'func');
+
+			// Require dependencies. Will wait until all dependencies are ready
+			libx.di.require((func, anonFunc)=>{
+				func();
+				anonFunc();
+			});
+
+			// Register another dependencies. Will trigger execution of the `require`
+			libx.di.register(()=>console.log('Anonymous func'), 'anonFunc');
+
+			console.log('- Done!')
+			alert('Done!')
+		}
+
+	</script>
+</html>
