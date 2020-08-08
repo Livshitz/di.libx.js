@@ -28,6 +28,9 @@ Or include from node_modules.
 
 Basic usage:
 ```javascript:
+import DependencyInjector from 'di.libx.js';
+// const DependencyInjector = require('di.libx.js');
+
 const myFunc = ()=>{
     console.log('This is myFunc');
 }

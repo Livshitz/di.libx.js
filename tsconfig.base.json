@@ -12,6 +12,7 @@
 		"typeRoots": ["node_modules/@types", "."],
 		"inlineSources": true,
 		"skipLibCheck": true,
+		"declaration": true,
 		"resolveJsonModule": true,
 		"types": [ 	
 			"jest",

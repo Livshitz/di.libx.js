@@ -1,5 +1,3 @@
 import DependencyInjector from './DependencyInjector';
 
-export {
-    DependencyInjector,
-}
+export default DependencyInjector;
