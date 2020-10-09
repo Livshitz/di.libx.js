@@ -31,22 +31,24 @@ Basic usage:
 import DependencyInjector from 'di.libx.js';
 // const DependencyInjector = require('di.libx.js');
 
+const di = new DependencyInjector();
+
 const myFunc = ()=>{
     console.log('This is myFunc');
 }
 
 // Register a dependencies
-libx.di.register(myFunc, 'func');
+di.register(myFunc, 'func');
 
 // Require dependencies. Will wait until all dependencies are ready
 // Note that awaiting this function will create dead lock unless the other register will called in parallel
-libx.di.require((func, anonFunc)=>{
+di.require((func, anonFunc)=>{
     func();
     anonFunc();
 });
 
 // Register another dependencies. Will trigger execution of the `require`
-libx.di.register(()=>console.log('Anonymous func'), 'anonFunc');
+di.register(()=>console.log('Anonymous func'), 'anonFunc');
 ```
 
 Check more examples in unit-test at [tests](tests/DependencyInjector.test.ts).
