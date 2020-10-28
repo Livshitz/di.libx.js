@@ -2,7 +2,7 @@ import { Deferred } from 'concurrency.libx.js';
 import Helpers from './Helpers';
 
 export default class DependencyInjector {
-    public modules = {};
+    public modules: Map = {};
     private _pendingFunctions: {};
     private static resolverType: (name: string)=>Promise<{}>;
     private _resolver: typeof DependencyInjector.resolverType;
@@ -134,4 +134,8 @@ export default class DependencyInjector {
     }
 
 }
-	
+    
+
+type Map<T=any>= {
+    [Key in keyof T]: T;
+}
