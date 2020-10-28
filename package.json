@@ -1,13 +1,13 @@
 {
   "name": "di.libx.js",
   "version": "0.1.6",
-  "main": "./build/index",
+  "main": "./src/index",
   "types": "./build",
   "license": "MIT",
   "author": "",
   "scripts": {
     "build": "tsc",
-    "build-browser": "node node_modules/pax.libx.js/build/utils/browserify.js src/browser.ts dist -y --minify",
+    "build-browser": "pax-browserify src/browser.ts dist -y --minify",
     "watch": "tsc -w",
     "main": "node build/Main.js",
     "test": "jest",
@@ -31,7 +31,7 @@
     "jest": "^25.1.0",
     "jest-junit": "^10.0.0",
     "jest-junit-reporter": "^1.1.0",
-    "pax.libx.js": "^0.2.5",
+    "pax.libx.js": "^0.3.4",
     "ts-jest": "^25.2.0"
   },
   "jest": {

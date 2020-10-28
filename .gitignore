@@ -14,3 +14,7 @@ dist/
 build/
 yarn.lock
 .tmp/
+
+src/**/*.js
+src/**/*.js.map
+src/**/*.d.ts
