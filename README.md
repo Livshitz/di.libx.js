@@ -52,6 +52,35 @@ di.require((func, anonFunc)=>{
 di.register(()=>console.log('Anonymous func'), 'anonFunc');
 ```
 
+More examples:
+```javascript:
+// in your web app add:
+// <script src="https://cdn.jsdelivr.net/npm/di.libx.js@latest/dist/browser.min.js"></script>
+
+var myModule = { somveVar: 1 };
+libx.di.register(myModule, 'myModule');
+
+// async require:
+await libx.di.require((myModule)=>{
+    console.log('dependency resolved!', myModule);
+    // execute your code here. 'await' is optional incase you want it to be async and continue execution.
+    // note: the callback will be triggered only once the dependency is registered somewhere else in your program. Beware not to create dead-lock.
+});
+
+// sync get
+mod = libx.di.get('myModule');
+
+// register new module with other dependencies:
+mod = libx.di.registerResolve('myNewModule', (myModule)=> {
+    return ()=>console.log('this came from myNewModule!', myModule);
+});
+
+// require for uglified code:
+libx.di.requireUgly(['myModule'], myModule=> {
+    console.log('unglified dependency resolved!', myModule);
+});
+```
+
 Check more examples in unit-test at [tests](tests/DependencyInjector.test.ts).
 
 ------
