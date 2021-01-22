@@ -20,7 +20,7 @@ yarn add di.libx.js
 #### Browser:
 ```
 https://cdn.jsdelivr.net/npm/di.libx.js@latest/dist/browser.min.js
-(Modules are loaded into `window.libx.concurrency` object).
+(Modules are loaded into `window.libx.di` object).
 ```
 Use this library in browser from CDN, [code example](examples/index.html), [live example](https://raw.githack.com/Livshitz/di.libx.js/master/examples/index.html).  
 Or include from node_modules.
