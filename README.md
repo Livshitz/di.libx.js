@@ -12,9 +12,13 @@
 
 
 ## Use:
-#### NodeJS:
+Install via yarn (recommended):
 ```
 yarn add di.libx.js
+```
+Install via npm:
+```
+npm install --save di.libx.js
 ```
 
 #### Browser:
