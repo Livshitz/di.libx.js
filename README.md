@@ -5,9 +5,10 @@
 
 ### Features:
 - **Deferred resolution** - asynchronously require dependencies that are not yet available and resolve once it is.
-- **Automatic resolve of function params** - Resolve & map dependencies manually or as function's parameters
+- **Automatic resolve of function params** - resolve & map dependencies manually or as function's parameters
 - **NodeJS & browser** - browserified version ready to use from CDN.
-- **Explicit or implicit dependencies** - Works with uglified files by specifiend dependencies' names or implicitly from function/class name.
+- **Explicit or implicit dependencies** - works with uglified files by specifiend dependencies' names or implicitly from function/class name.
+- **Typescript support** - specify injected instance's typesa.
 
 
 ## Use:
