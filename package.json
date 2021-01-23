@@ -1,6 +1,6 @@
 {
   "name": "di.libx.js",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "main": "./build/index",
   "types": "./build",
   "license": "MIT",
