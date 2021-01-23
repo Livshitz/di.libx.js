@@ -33,7 +33,7 @@ Or include from node_modules.
 ------
 
 Basic usage:
-```javascript:
+```javascript
 import DependencyInjector from 'di.libx.js';
 // const DependencyInjector = require('di.libx.js');
 
@@ -58,7 +58,7 @@ di.register(()=>console.log('Anonymous func'), 'anonFunc');
 ```
 
 More examples:
-```javascript:
+```javascript
 // in your web app add:
 // <script src="https://cdn.jsdelivr.net/npm/di.libx.js@latest/dist/browser.min.js"></script>
 
