@@ -8,7 +8,7 @@
 - **Automatic resolve of function params** - resolve & map dependencies manually or as function's parameters
 - **NodeJS & browser** - browserified version ready to use from CDN.
 - **Explicit or implicit dependencies** - works with uglified files by specifiend dependencies' names or implicitly from function/class name.
-- **Typescript support** - specify injected instance's typesa.
+- **Typescript support** - specify injected instance's types.
 
 
 ## Use:
