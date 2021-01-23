@@ -9,6 +9,7 @@
 - **NodeJS & browser** - browserified version ready to use from CDN.
 - **Explicit or implicit dependencies** - works with uglified files by specified dependencies' names or implicitly from function/class name.
 - **Typescript support** - specify injected instance's types.
+- **Non Intrusive** - register any modules; your internal modules or 3rd-party modules without modifing its code. No attribute wrapping needed.
 
 
 ## Use:
