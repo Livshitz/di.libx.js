@@ -1,7 +1,7 @@
 ![Node.js CI](https://github.com/Livshitz/di.libx.js/workflows/Node.js%20CI/badge.svg)
 
 # 💉 di.libx.js
-> Lightweight Dependency Injection module that supports async/deferred resolution and uglified support for Typescript and JavaScript in 3.3kB gzipped (14.7K on disk). Feature complete, fast, reliable and well tested.
+> Lightweight Dependency Injection module that supports async/deferred resolution and uglified support for Typescript and JavaScript in 3.3kB gzipped (14.7kB on disk). Feature complete, fast, reliable and well tested.
 
 ### Features:
 - **Deferred resolution** - asynchronously require dependencies that are not yet available and resolve once it is.
