@@ -3,9 +3,13 @@ export default class Helpers {
     private static ARGUMENT_NAMES = /([^\s,]+)/g;
 
     public static getParamNames = function(func) { 
-		const fnStr = func.toString().replace(Helpers.STRIP_COMMENTS, '');
-		if (fnStr.match(/^\s*class\s+/) != null) return null;
-		const m = fnStr.match(/^\(?(?:async\s?)?(?:function\s?)?\(?([\w\d\,\s\$\_]+)\)?/);
+        var fnStr = func.toString().replace(Helpers.STRIP_COMMENTS, '');
+        var m = null;
+		if (fnStr.match(/^\s*class\s+/) != null) {
+            m = fnStr.match(/(?:constructor\s?)\(?([\w\d\,\s\$\_]+)\)?/);
+        } else {
+            m = fnStr.match(/^\(?(?:async\s?)?(?:function\s?)?\(?([\w\d\,\s\$\_]+)\)?/);
+        }
 		if (m == null || m.length < 1) return null;
 		const params = m[1].replace(/\s/g, '');
 		let result = params.split(',');
