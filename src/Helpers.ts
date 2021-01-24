@@ -3,13 +3,13 @@ export default class Helpers {
     private static ARGUMENT_NAMES = /([^\s,]+)/g;
 
     public static getParamNames = function(func) { 
-		var fnStr = func.toString().replace(Helpers.STRIP_COMMENTS, '');
+		const fnStr = func.toString().replace(Helpers.STRIP_COMMENTS, '');
 		if (fnStr.match(/^\s*class\s+/) != null) return null;
-		var m = fnStr.match(/^\(?(?:async\s?)?(?:function\s?)?\(?([\w\d\,\s\$\_]+)\)?/);
+		const m = fnStr.match(/^\(?(?:async\s?)?(?:function\s?)?\(?([\w\d\,\s\$\_]+)\)?/);
 		if (m == null || m.length < 1) return null;
-		var params = m[1].replace(/\s/g, '');
-		var result = params.split(',');
-		// var result = fnStr.slice(fnStr.indexOf('(')+1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
+		const params = m[1].replace(/\s/g, '');
+		let result = params.split(',');
+		// let result = fnStr.slice(fnStr.indexOf('(')+1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
 		if(result === null)
 			result = [];
 		return result;
@@ -21,7 +21,7 @@ export default class Helpers {
 
     public static isEmpty = (obj)=>{
         if (obj == null) return true;
-        for(var prop in obj) {
+        for(const prop in obj) {
             if(obj.hasOwnProperty(prop))
                 return false;
         }
@@ -30,7 +30,7 @@ export default class Helpers {
     }
 
     public static removeItemFromArr = (arr, item) =>{
-        var index = arr.indexOf(item);
+        const index = arr.indexOf(item);
 		if (index > -1) {
 			arr.splice(index, 1);
 		}
