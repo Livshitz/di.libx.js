@@ -1,5 +1,5 @@
-import DependencyInjector from "../src/DependencyInjector";
-import { sleep, Deferred } from "concurrency.libx.js";
+import DependencyInjector from '../src/DependencyInjector';
+import { sleep, Deferred } from 'concurrency.libx.js';
 
 class MyClass {
     public clasFunc() {
@@ -86,10 +86,10 @@ describe('dependencyInjector tests', () => {
             return () => 20;
         });
 
-        di.require(combo => {
+        di.require((combo) => {
             expect(combo()).toBe(20);
             done();
-        })
+        });
     });
 
     test('dependencyInjector-require', async (done) => {
@@ -112,7 +112,7 @@ describe('dependencyInjector tests', () => {
 
     test('dependencyInjector-require-withoutParentheses', async (done) => {
         di.register(myFunc);
-        await di.require(myFunc => {
+        await di.require((myFunc) => {
             let res = myFunc();
             expect(res).toBe(1);
             done();
@@ -124,7 +124,7 @@ describe('dependencyInjector tests', () => {
         setTimeout(() => {
             di.register(myFunc);
         }, 100);
-        await di.require(myFunc => {
+        await di.require((myFunc) => {
             let res = myFunc();
             let dur = new Date().getTime() - start;
             expect(dur).toBeLessThanOrEqual(110);
@@ -137,7 +137,8 @@ describe('dependencyInjector tests', () => {
     test('dependencyInjector-require-async-hang', async (done) => {
         let start = new Date().getTime();
         let wasCalled = false;
-        di.require(nonExistingFunc => { // should not be called as this dep is never resolved
+        di.require((nonExistingFunc) => {
+            // should not be called as this dep is never resolved
             wasCalled = true;
             expect(wasCalled).toBe(false);
             done();
@@ -149,10 +150,10 @@ describe('dependencyInjector tests', () => {
 
     test('dependencyInjector-require-multiple', async (done) => {
         let p1, p2;
-        p1 = di.require(a => {
+        p1 = di.require((a) => {
             expect(a()).toBe(1);
         });
-        p2 = di.require(a => {
+        p2 = di.require((a) => {
             expect(a()).toBe(1);
         });
         di.register(myFunc, 'a');
@@ -169,6 +170,4 @@ describe('dependencyInjector tests', () => {
         expect(res).toBe(1);
         done();
     });
-
-})
-
+});
