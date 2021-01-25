@@ -12,7 +12,8 @@
     "main": "node build/Main.js",
     "test": "jest",
     "test:ci": "jest --ci --reporters=default --reporters=jest-junit --coverage --coverageReporters=cobertura --coverageReporters=html",
-    "bump": "./bump.sh"
+    "bump": "./bump.sh",
+    "format": "prettier --config .prettierrc 'src/**/*.ts' 'tests/**/*.ts' --write"
   },
   "files": [
     "build/**",
@@ -31,6 +32,7 @@
     "jest": "^25.1.0",
     "jest-junit": "^10.0.0",
     "jest-junit-reporter": "^1.1.0",
+    "prettier": "^2.2.1",
     "ts-jest": "^25.2.0"
   },
   "jest": {
