@@ -8,6 +8,17 @@ export default class App {
 	public async run() {
 		console.log('Hello World!');
 
+		// const test = Symbol('test');
+		const test = 'test';
+
+		const di = new DependencyInjector();
+		di.register(test, (a: number)=> a*2);
+
+		const dep = await di.requireSingle(test);
+		const res = dep(10);
+
+		console.log('res: ', res);
+
 		return true;
 	}
 }

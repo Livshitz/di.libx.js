@@ -1,140 +1,89 @@
 import { Deferred } from 'concurrency.libx.js';
 import Helpers from './Helpers';
 
-export default class DependencyInjector {
-    public modules: Map = {};
-    private _pendingFunctions: {};
-    private static resolverType: (name: string) => Promise<{}>;
-    private _resolver: typeof DependencyInjector.resolverType;
+export type ModuleKey = string | symbol;
 
-    constructor(resolver?: typeof DependencyInjector.resolverType) {
-        this.modules = {};
-        this._pendingFunctions = {};
-        this._resolver = resolver;
+export default class DependencyInjector {
+    public modules: Map<ModuleKey, any> = null;
+    private _options = new ModuleOptions();
+    private _pendingRequireRequests: PendingRequireRequest[] = [];
+
+    constructor(options?: ModuleOptions) {
+        this._options = { ...this._options, ...options };
+        this.modules = <Map<ModuleKey, any>>{};
     }
 
-    public register<T>(instance: T, name: string = null): T {
-        if (instance == null) throw new Error('DependencyInjector:register: instance cannot be null');
+    public register<T>(moduleIdentifier: ModuleKey, instance: T) {
+        this.modules[moduleIdentifier] = instance;
 
-        // backward compatibility where the order of params was opposite
-        if (typeof instance == 'string') {
-            let tmp: any = name;
-            name = instance;
-            instance = tmp;
-        }
+        this._recheckPendingRequireRequestsAndTrigger(moduleIdentifier, instance);
 
-        if (name == null) name = Helpers.tryGetInstanceTypeName(instance);
-        this.modules[name] = instance;
-        this._treatReadyPendingFunctions();
         return instance;
     }
 
-    public async registerResolve(name, func) {
-        const ret = new Deferred();
-        const realInstance = await this.require(func);
-        this.register(realInstance, name);
-        ret.resolve(realInstance);
-        return ret;
-    }
-
-    public get<T>(name: string): T {
-        if (name == null) name = Helpers.tryGetInstanceTypeName<T>();
-
-        let ret = this.modules[name];
-
-        if (ret == null && this._resolver != null) {
-            // try to require a module
-            ret = this._resolver(name);
+    public async require(moduleIdentifiers: ModuleKey[]) {
+        const promises: Promise<any>[] = [];
+        for (let identifier of moduleIdentifiers) {
+            const p = this.requireSingle(identifier);
+            promises.push(p);
         }
 
-        return ret;
+        return Promise.all(promises);
     }
 
-    private resolve<T>(func: Function, isGetArray = false): T[] {
-        const modulesName = Helpers.getParamNames(func);
-        if (modulesName == null) return null;
-        if (modulesName.length == 1 && !isGetArray) return this.get(modulesName);
-
-        let ret = [];
-        modulesName.forEach((m) => ret.push(this.get(m)));
-        return ret;
+    public async inject(injectFunc: Function, moduleIdentifiers?: ModuleKey[]) {
+        if (moduleIdentifiers == null) moduleIdentifiers = Helpers.getParamNames(injectFunc);
+        const modules = await this.require(moduleIdentifiers);
+        return injectFunc.apply(injectFunc, modules);
     }
 
-    public inject(func) {
-        const modules = this.resolve(func, true);
-        return func.apply(func, modules);
+    public async initiate<T>(classPrototype: Class<T>, constructorDependenciesIdentifiers?: ModuleKey[]) {
+        const modulesNames = constructorDependenciesIdentifiers || Helpers.getParamNames(classPrototype);
+        const deps = await this.require(modulesNames);
+        return <T>Reflect.construct(classPrototype, deps);
     }
 
-    public async require<T>(func: Function): Promise<T> {
-        const modulesName = Helpers.getParamNames(func);
-        return this.requireUgly(modulesName, func);
+    public async injectAndRegister<T>(moduleIdentifier: ModuleKey, injectFunc: (...args) => T) {
+        const instance = await this.inject(injectFunc);
+        this.register(moduleIdentifier, instance);
     }
 
-    public async requireUgly<T>(depsArr, func): Promise<T> {
-        const ret = new Deferred();
-
-        const modules = [];
-        const modulesName = depsArr;
-        let wasMissing = false;
-        modulesName.forEach((m) => {
-            const _mod = this.get(m);
-            if (_mod != null) modules.push(_mod);
-            else {
-                wasMissing = true;
-                if (this._pendingFunctions[m] == null) this._pendingFunctions[m] = [];
-                this._pendingFunctions[m].push(new DependencyInjector.PendingFunc(func, ret));
-            }
-        });
-        if (!wasMissing) {
-            const res = func.apply(func, modules);
-            ret.resolve(res);
+    public async requireSingle(moduleIdentifier: ModuleKey) {
+        const existingModule = this.modules[moduleIdentifier];
+        if (existingModule != null) {
+            return existingModule;
         }
 
-        return ret;
+        const pendingRequire = new PendingRequireRequest(moduleIdentifier);
+        this._pendingRequireRequests.push(pendingRequire);
+
+        return pendingRequire.promise;
     }
 
-    private static PendingFunc = class<T> {
-        public func: Function;
-        public promise: Promise<T>;
-        constructor(func, promise) {
-            this.func = func;
-            this.promise = promise;
+    public hasPendingRequireRequests() {
+        return this._pendingRequireRequests.length > 0;
+    }
+
+    private _recheckPendingRequireRequestsAndTrigger<T = any>(newRegisteredModuleIdentifier: ModuleKey, newInstance: T) {
+        for (let pendingRequire of [...this._pendingRequireRequests]) {
+            if (pendingRequire.moduleIdentifier != newRegisteredModuleIdentifier) continue;
+
+            pendingRequire.promise.resolve(newInstance);
+            Helpers.removeItemFromArr(this._pendingRequireRequests, pendingRequire);
         }
-    };
-
-    private _treatReadyPendingFunctions() {
-        const pendingModules = Helpers.getKeys(this._pendingFunctions); //libx.getCustomProperties(this.pendingFunctions)
-        if (Helpers.isEmpty(pendingModules)) return;
-
-        pendingModules.forEach((modName) => {
-            const _mod = this.modules[modName];
-            if (_mod == null) return;
-            const pendingArr = [...this._pendingFunctions[modName]];
-            pendingArr.forEach((pending) => {
-                const modulesName = Helpers.getParamNames(pending.func);
-
-                let isReady = true;
-                modulesName.forEach((modName2) => {
-                    const _mod2 = this.modules[modName];
-                    if (_mod2 == null) {
-                        isReady = false;
-                        return false;
-                    }
-                });
-
-                if (!isReady) return;
-
-                if (this._pendingFunctions[modName].length == 1) delete this._pendingFunctions[modName];
-                else Helpers.removeItemFromArr(this._pendingFunctions[modName], pending);
-
-                this.require(pending.func).then((res) => {
-                    pending.promise.resolve(res);
-                });
-            });
-        });
     }
 }
 
-type Map<T = any> = {
-    [Key in keyof T]: T;
-};
+type Class<T> = new (...args: any[]) => T;
+class PendingRequireRequest<T = any> {
+    public promise: Deferred<T>;
+    constructor(public moduleIdentifier: ModuleKey) {
+        this.promise = new Deferred<T>();
+    }
+
+    public onResolve(instance: T) {
+        return this.promise.resolve(instance);
+    }
+}
+
+export class ModuleOptions {}
