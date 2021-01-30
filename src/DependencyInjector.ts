@@ -8,12 +8,14 @@ export type ModuleKey = string | symbol;
  */
 export default class DependencyInjector {
     public modules: Map<ModuleKey, any> = null;
+    public parent: DependencyInjector = null;
     private _options = new ModuleOptions();
     private _pendingRequireRequests: PendingRequireRequest[] = [];
 
-    constructor(options?: ModuleOptions) {
+    constructor(parent?: DependencyInjector, options?: ModuleOptions) {
         this._options = { ...this._options, ...options };
         this.modules = <Map<ModuleKey, any>>{};
+        this.parent = parent;
     }
 
     /**
@@ -39,7 +41,7 @@ export default class DependencyInjector {
      * Asynchronously require array of modules.
      * If not all modules are currently available will wait until they become available.
      * Beware of dead-lock if the promise is awaited in same context where the dependency is later registered.
-     * @param moduleIdentifiers Array of unique identifier
+     * @param moduleIdentifiers Unique identifier as single or array
      * @return                  Returns a promise that can be awaited until ALL dependencies are ready
      */
     public async require(moduleIdentifiers: ModuleKey | ModuleKey[]) {
@@ -106,7 +108,8 @@ export default class DependencyInjector {
     }
 
     protected async requireSingle(moduleIdentifier: ModuleKey) {
-        const existingModule = this.modules[moduleIdentifier];
+        let existingModule = this.modules[moduleIdentifier];
+        if (existingModule == null && this.parent != null) existingModule = this.parent.modules[moduleIdentifier];
         if (existingModule != null) {
             return existingModule;
         }
