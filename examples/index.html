@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<script src="https://cdn.jsdelivr.net/npm/di.libx.js@latest/dist/browser.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/di.libx.js@1.0.0/dist/browser.min.js?1"></script>
 		<!-- <script src="../dist/browser.min.js"></script> -->
 	</head>
 	<body>
@@ -19,16 +19,20 @@
 			}
 
 			// Register a dependencies
-			libx.di.register(myFunc, 'func');
+			libx.di.register('func', myFunc);
 
 			// Require dependencies. Will wait until all dependencies are ready
-			libx.di.require((func, anonFunc)=>{
+			libx.di.inject((func, anonFunc)=>{
 				func();
 				anonFunc();
+				return { isDone: true };
+			}).then((returnedValue)=>{
+				// inject could be used to require dependencies and create compound modules using `injectAndRegister`
+				console.log('inject was done, returnedValue: ', returnedValue);
 			});
 
 			// Register another dependencies. Will trigger execution of the `require`
-			libx.di.register(()=>console.log('Anonymous func'), 'anonFunc');
+			libx.di.register('anonFunc', ()=>console.log('Anonymous func'));
 
 			console.log('- Done!')
 			alert('Done!')

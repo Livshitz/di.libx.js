@@ -42,8 +42,11 @@ export default class DependencyInjector {
      * @param moduleIdentifiers Array of unique identifier
      * @return                  Returns a promise that can be awaited until ALL dependencies are ready
      */
-    public async require(moduleIdentifiers: ModuleKey[]) {
+    public async require(moduleIdentifiers: ModuleKey | ModuleKey[]) {
         const promises: Promise<any>[] = [];
+
+        if (!Array.isArray(moduleIdentifiers)) moduleIdentifiers = [moduleIdentifiers];
+
         for (let identifier of moduleIdentifiers) {
             const p = this.requireSingle(identifier);
             promises.push(p);
