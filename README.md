@@ -81,7 +81,7 @@ await libx.di.inject((myModule) => {
     // note: the callback will be triggered only once the dependency is registered somewhere else in your program. Beware not to create dead-lock.
 });
 
-// sync get
+// synchronously get a module:
 mod = await libx.di.require('myModule');
 
 // register new module with other dependencies:
@@ -89,10 +89,13 @@ mod = libx.di.injectAndRegister('myNewModule', (myModule) => {
     return () => console.log('this came from myNewModule!', myModule);
 });
 
-// require for uglified code:
-libx.di.inject((myModule) => {
-    console.log('unglified dependency resolved!', myModule);
-}, ['myModule']);
+// inject for uglified code (second param is module identifiers, injected by position. So `myUglifiedModule` == `myModule`):
+libx.di.inject(
+    (myUglifiedModule) => {
+        console.log('unglified dependency resolved!', myUglifiedModule);
+    },
+    ['myModule']
+);
 ```
 
 Check more examples in unit-test at [tests](tests/DependencyInjector.test.ts).
