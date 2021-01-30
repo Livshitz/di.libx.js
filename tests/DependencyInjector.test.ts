@@ -223,3 +223,26 @@ describe("dependencyInjector - Autowire mode (initiate a class by injecting it's
         di.register('myClass', new MyClass());
     });
 });
+
+describe('dependencyInjector - parent DIC', () => {
+    test('Resolve modules from parent container', async (done) => {
+        const parent = new DependencyInjector();
+        const child = new DependencyInjector(parent);
+
+        const moduleName = 'test';
+        parent.register(moduleName, <any>myFunc);
+        child.register('testChild', (arg) => arg * 3);
+
+        let [dep] = <[typeof myFunc]>await child.require(moduleName);
+        expect(typeof dep).toBe(typeof myFunc);
+
+        child.inject((testChild) => {
+            expect(testChild(10)).toBe(30);
+
+            done();
+        });
+
+        let res = dep(2);
+        expect(res).toBe(20);
+    });
+});
