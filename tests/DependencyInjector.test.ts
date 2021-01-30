@@ -2,172 +2,224 @@ import DependencyInjector from '../src/DependencyInjector';
 import { sleep, Deferred } from 'concurrency.libx.js';
 
 class MyClass {
-    public clasFunc() {
+    public classFunc() {
         return 10;
     }
 }
 
-describe('dependencyInjector tests', () => {
-    let di: DependencyInjector;
-
-    function myFunc() {
-        return 1;
+class AutowireClass {
+    constructor(private myClass: MyClass) {
+        // expect myFunc to be injected
     }
+    public testMe() {
+        return this.myClass.classFunc(); // use injected method
+    }
+}
 
-    const myFuncAnonymous = () => 2;
+let di: DependencyInjector;
 
-    beforeEach(async (done) => {
-        di = new DependencyInjector();
+function myFunc(arg: number) {
+    return arg * 10;
+}
+
+const myFuncAnonymous = () => 2;
+
+beforeEach(async (done) => {
+    di = new DependencyInjector();
+    done();
+});
+
+describe('dependencyInjector main tests', () => {
+    test('Single register and require', async (done) => {
+        const moduleName = 'test';
+        di.register(moduleName, <any>myFunc);
+
+        let [dep] = <[typeof myFunc]>await di.require([moduleName]);
+        expect(typeof dep).toBe(typeof myFunc);
+
+        let res = dep(2);
+        expect(res).toBe(20);
+
         done();
     });
 
-    test('dependencyInjector-get-backwardCompatibility', async (done) => {
-        di.register('a', <any>myFunc); // args order was opposite
-        let x: typeof myFunc = di.get('a');
-        expect(typeof x).toBe(typeof myFunc);
-        let res = x();
-        expect(res).toBe(1);
+    test('Single register and require - object module', async (done) => {
+        const moduleName = 'test';
+        const myObj = {
+            a: 1,
+            b: 2,
+        };
+        di.register(moduleName, myObj);
+
+        let [dep] = <[typeof myObj]>await di.require([moduleName]);
+
+        expect(dep.a).toBe(1);
+
         done();
     });
 
-    test('dependencyInjector-get-explicityName', async (done) => {
-        di.register(myFunc, 'a');
-        let x: typeof myFunc = di.get('a');
-        expect(typeof x).toBe(typeof myFunc);
-        let res = x();
-        expect(res).toBe(1);
+    test('Single register and require using a Symbol', async (done) => {
+        const symb = Symbol('test');
+        di.register(symb, <any>myFunc);
+
+        let [dep] = <[typeof myFunc]>await di.require([symb]);
+        expect(typeof dep).toBe(typeof myFunc);
+
+        let res = dep(2);
+        expect(res).toBe(20);
+
         done();
     });
 
-    test('dependencyInjector-get-implicitName', async (done) => {
-        di.register(myFunc);
-        let x: typeof myFunc = di.get(myFunc.name);
-        expect(typeof x).toBe(typeof myFunc);
-        let res = x();
-        expect(res).toBe(1);
+    test('Async single register and require', async (done) => {
+        const moduleName = 'test';
+
+        di.require([moduleName]).then((deps: any[]) => {
+            const dep = deps[0];
+            expect(typeof dep).toBe(typeof myFunc);
+
+            let res = dep(2);
+            expect(res).toBe(20);
+
+            expect(di.hasPendingRequireRequests()).toBe(false);
+
+            done();
+        });
+
+        di.register(moduleName, <any>myFunc);
+    });
+
+    test('Register multiple and require', async (done) => {
+        const moduleNameA = 'test1';
+        const moduleNameB = 'test2';
+
+        di.register(moduleNameA, (arg: number) => arg * 2);
+        di.register(moduleNameB, (arg: number) => arg * 3);
+
+        let deps: typeof myFunc[] = await di.require([moduleNameA, moduleNameB]);
+        expect(deps.length).toBe(2);
+
+        expect(deps[0](2)).toBe(4);
+        expect(deps[1](2)).toBe(6);
+
         done();
     });
 
-    test('dependencyInjector-get-anonymousFunc', async (done) => {
-        di.register(myFuncAnonymous, 'a');
-        let x: typeof myFunc = di.get('a');
-        expect(typeof x).toBe(typeof myFunc);
-        let res = x();
-        expect(res).toBe(2);
-        done();
-    });
+    test('Inject dependencies into require/inject function - sync', async (done) => {
+        const moduleNameA = 'test1';
+        const moduleNameB = 'test2';
 
-    test('dependencyInjector-get-class-explicityName', async (done) => {
-        di.register(new MyClass(), 'myClass');
-        await di.require((myClass: MyClass) => {
-            let res = myClass.clasFunc();
-            expect(res).toBe(10);
+        di.register(moduleNameA, (arg: number) => arg * 2);
+        di.register(moduleNameB, (arg: number) => arg * 3);
+
+        await di.inject((test1, test2) => {
+            expect(test1(2)).toBe(4);
+            expect(test2(2)).toBe(6);
+
             done();
         });
     });
 
-    test('dependencyInjector-get-class-implicitName', async (done) => {
-        let myClass = new MyClass();
-        di.register(myClass);
-        await di.require((MyClass: MyClass) => {
-            let res = MyClass.clasFunc();
-            expect(res).toBe(10);
+    test('Inject dependencies into require/inject function - async', async (done) => {
+        const moduleNameA = 'test1';
+        const moduleNameB = 'test2';
+
+        di.inject((test1, test2) => {
+            expect(test1(2)).toBe(4);
+            expect(test2(2)).toBe(6);
+
             done();
         });
+
+        di.register(moduleNameA, (arg: number) => arg * 2);
+        di.register(moduleNameB, (arg: number) => arg * 3);
     });
 
-    test('dependencyInjector-registerResolve', async (done) => {
-        di.register(myFunc, '_myFunc');
-        di.register(new MyClass(), 'myClass');
+    test('Inject dependencies into require/inject function - uglified', async (done) => {
+        const moduleNameA = 'test1';
+        const moduleNameB = 'test2';
 
-        await di.registerResolve('combo', (_myFunc: typeof myFunc, myClass: MyClass) => {
-            expect(_myFunc()).toBe(1);
-            expect(myClass.clasFunc()).toBe(10);
-            return () => 20;
-        });
+        di.inject(
+            (aa, bb) => {
+                expect(aa(2)).toBe(4);
+                expect(bb(2)).toBe(6);
 
-        di.require((combo) => {
-            expect(combo()).toBe(20);
-            done();
-        });
+                done();
+            },
+            ['test1', 'test2']
+        );
+
+        di.register(moduleNameA, (arg: number) => arg * 2);
+        di.register(moduleNameB, (arg: number) => arg * 3);
     });
 
-    test('dependencyInjector-require', async (done) => {
-        di.register(myFunc);
-        await di.require((myFunc) => {
-            let res = myFunc();
-            expect(res).toBe(1);
+    test('Register compound module after injecting dependencies', async (done) => {
+        const moduleNameA = 'test1';
+        const moduleNameB = 'test2';
+
+        // register one now
+        di.register(moduleNameA, (arg: number) => arg * 2);
+
+        di.injectAndRegister('myCompoundModule', (test1, test2) => {
+            return (arg: number) => test1(arg) * test2(arg);
+        });
+
+        di.inject((myCompoundModule) => {
+            expect(myCompoundModule(2)).toBe(2 * 2 * 2 * 3);
+
+            expect(di.hasPendingRequireRequests()).toBe(false);
             done();
         });
+
+        // only now register the other dependency, should trigger registration of the compound module and only then trigger the inject
+        di.register(moduleNameB, (arg: number) => arg * 3);
     });
 
-    test('dependencyInjector-requireUgly', async (done) => {
-        di.register(myFunc);
-        await di.requireUgly(['myFunc'], (newFuncName) => {
-            let res = newFuncName();
-            expect(res).toBe(1);
-            done();
-        });
-    });
+    test('Unregister a module', async (done) => {
+        const moduleName = 'test';
+        di.register(moduleName, <any>myFunc);
+        expect(Object.keys(di.modules).length).toBe(1);
 
-    test('dependencyInjector-require-withoutParentheses', async (done) => {
-        di.register(myFunc);
-        await di.require((myFunc) => {
-            let res = myFunc();
-            expect(res).toBe(1);
-            done();
-        });
-    });
+        di.unregister(moduleName);
+        expect(Object.keys(di.modules).length).toBe(0);
 
-    test('dependencyInjector-require-async-waitUntilReady', async (done) => {
-        let start = new Date().getTime();
-        setTimeout(() => {
-            di.register(myFunc);
-        }, 100);
-        await di.require((myFunc) => {
-            let res = myFunc();
-            let dur = new Date().getTime() - start;
-            expect(dur).toBeLessThanOrEqual(110);
-            expect(dur).toBeGreaterThanOrEqual(100);
-            expect(res).toBe(1);
-            done();
-        });
+        done();
     });
+});
 
-    test('dependencyInjector-require-async-hang', async (done) => {
-        let start = new Date().getTime();
-        let wasCalled = false;
-        di.require((nonExistingFunc) => {
-            // should not be called as this dep is never resolved
-            wasCalled = true;
-            expect(wasCalled).toBe(false);
-            done();
-        });
-        await sleep(100);
-        expect(wasCalled).toBe(false);
+describe("dependencyInjector - Autowire mode (initiate a class by injecting it's dependencies in the constructor)", () => {
+    test('Initiate a class by injecting dependencies - register deps first', async (done) => {
+        // register AutowireClass's dependency first:
+        di.register('myClass', new MyClass());
+        // Will check AutowireClass's dependencies, then will require & inject them into AutowireClass's constructor and return an instance
+        const instance = await di.initiate(AutowireClass);
+
+        expect(instance.testMe()).toBe(10);
         done();
     });
 
-    test('dependencyInjector-require-multiple', async (done) => {
-        let p1, p2;
-        p1 = di.require((a) => {
-            expect(a()).toBe(1);
+    test('Initiate a class by injecting dependencies - Async, register deps last', async (done) => {
+        di.initiate(AutowireClass).then((instance) => {
+            expect(instance.testMe()).toBe(10);
+            done();
         });
-        p2 = di.require((a) => {
-            expect(a()).toBe(1);
-        });
-        di.register(myFunc, 'a');
-        await Promise.all([p1, p2]);
-        done();
+
+        di.register('myClass', new MyClass());
     });
 
-    test('dependencyInjector-inject', async (done) => {
-        di.register(myFunc, 'myFunc');
-        let res = null;
-        di.inject((myFunc) => {
-            res = myFunc();
+    test('Initiate a class by injecting dependencies - Async and uglified', async (done) => {
+        class AutowireClass2 {
+            constructor(private aaa: MyClass) {}
+            public testMe() {
+                return this.aaa.classFunc(); // use injected method
+            }
+        }
+
+        di.initiate(AutowireClass2, ['myClass']).then((instance) => {
+            expect(instance.testMe()).toBe(10);
+            done();
         });
-        expect(res).toBe(1);
-        done();
+
+        di.register('myClass', new MyClass());
     });
 });

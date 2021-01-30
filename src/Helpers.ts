@@ -2,7 +2,7 @@ export default class Helpers {
     private static STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/gm;
     private static ARGUMENT_NAMES = /([^\s,]+)/g;
 
-    public static getParamNames = function (func) {
+    public static getParamNames = function (func: Function) {
         const fnStr = func.toString().replace(Helpers.STRIP_COMMENTS, '');
         let m = null;
         if (fnStr.match(/^\s*class\s+/) != null) {
@@ -18,11 +18,11 @@ export default class Helpers {
         return result;
     };
 
-    public static getKeys = (obj) => {
+    public static getKeys = (obj: Object) => {
         return Object.keys(obj);
     };
 
-    public static isEmpty = (obj) => {
+    public static isEmpty = (obj: Object) => {
         if (obj == null) return true;
         for (const prop in obj) {
             if (obj.hasOwnProperty(prop)) return false;
@@ -31,7 +31,7 @@ export default class Helpers {
         return JSON.stringify(obj) === JSON.stringify({});
     };
 
-    public static removeItemFromArr = (arr, item) => {
+    public static removeItemFromArr = <T=any>(arr: T[], item: T) => {
         const index = arr.indexOf(item);
         if (index > -1) {
             arr.splice(index, 1);
@@ -39,7 +39,7 @@ export default class Helpers {
         return arr;
     };
 
-    public static tryGetInstanceTypeName = function <T>(instance?: T): string {
+    public static tryGetInstanceTypeName = function <T>(instance?: T): string | symbol {
         if (instance == null) return null;
         if (typeof instance == 'function') {
             if (instance.name == '') throw new Error('Helpers:tryGetInstanceName: Cannot imply instance name from anonymous functions');
