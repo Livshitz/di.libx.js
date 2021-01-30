@@ -174,6 +174,17 @@ describe('dependencyInjector main tests', () => {
         // only now register the other dependency, should trigger registration of the compound module and only then trigger the inject
         di.register(moduleNameB, (arg: number) => arg * 3);
     });
+
+    test('Unregister a module', async (done) => {
+        const moduleName = 'test';
+        di.register(moduleName, <any>myFunc);
+        expect(Object.keys(di.modules).length).toBe(1);
+
+        di.unregister(moduleName);
+        expect(Object.keys(di.modules).length).toBe(0);
+
+        done();
+    });
 });
 
 describe("dependencyInjector - Autowire mode (initiate a class by injecting it's dependencies in the constructor)", () => {

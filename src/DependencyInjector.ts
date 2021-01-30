@@ -94,6 +94,14 @@ export default class DependencyInjector {
         return this._pendingRequireRequests.length > 0;
     }
 
+    /**
+     * Remove a module by it's identifier
+     * @param moduleIdentifier  The identifier of the module to be deleted
+     */
+    public unregister(moduleIdentifier: ModuleKey) {
+        delete this.modules[moduleIdentifier];
+    }
+
     protected async requireSingle(moduleIdentifier: ModuleKey) {
         const existingModule = this.modules[moduleIdentifier];
         if (existingModule != null) {
