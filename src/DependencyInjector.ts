@@ -3,6 +3,9 @@ import Helpers from './Helpers';
 
 export type ModuleKey = string | symbol;
 
+/**
+ *
+ */
 export default class DependencyInjector {
     public modules: Map<ModuleKey, any> = null;
     private _options = new ModuleOptions();
@@ -13,7 +16,18 @@ export default class DependencyInjector {
         this.modules = <Map<ModuleKey, any>>{};
     }
 
+    /**
+     * Register an instance by it's identifier, so it could be required later.
+     * Will trigger all pending requires if exists and waiting for this specific module (by identifier).
+     * @param moduleIdentifier  Unique identifier. Registering with existing identifier will throw.
+     * @param instance          Function or object
+     * @return                  Return the instance itself
+     */
     public register<T>(moduleIdentifier: ModuleKey, instance: T) {
+        if (moduleIdentifier == null) throw `DependencyInjector: identifier cannot be null`;
+        if (this.modules[moduleIdentifier] != null)
+            throw `DependencyInjector: Module already exists!, identifier: ${moduleIdentifier.toString()}`;
+
         this.modules[moduleIdentifier] = instance;
 
         this._recheckPendingRequireRequestsAndTrigger(moduleIdentifier, instance);
@@ -21,6 +35,13 @@ export default class DependencyInjector {
         return instance;
     }
 
+    /**
+     * Asynchronously require array of modules.
+     * If not all modules are currently available will wait until they become available.
+     * Beware of dead-lock if the promise is awaited in same context where the dependency is later registered.
+     * @param moduleIdentifiers Array of unique identifier
+     * @return                  Returns a promise that can be awaited until ALL dependencies are ready
+     */
     public async require(moduleIdentifiers: ModuleKey[]) {
         const promises: Promise<any>[] = [];
         for (let identifier of moduleIdentifiers) {
@@ -31,24 +52,49 @@ export default class DependencyInjector {
         return Promise.all(promises);
     }
 
+    /**
+     * Asynchronously require dependencies by function's signature, wait for all dependencies to be available and then call the function.
+     * @param injectFunc        Function with arguments, where is argument is a dependency to be injected. Dependency modules are extracted automatically from argument names or if `moduleIdentifiers` is provided will use that as identifiers and will inject them based on argument position.
+     * @param moduleIdentifiers    Manually provide dependencies. Useful if code was obfuscated and signature don't infer dependencies names.
+     * @return                  Returns a promise that can be awaited until ALL dependencies have been registered
+     */
     public async inject(injectFunc: Function, moduleIdentifiers?: ModuleKey[]) {
         if (moduleIdentifiers == null) moduleIdentifiers = Helpers.getParamNames(injectFunc);
         const modules = await this.require(moduleIdentifiers);
         return injectFunc.apply(injectFunc, modules);
     }
 
+    /**
+     * Asynchronously detect dependencies of a class, wait for them and then initiate an instance of a given class.
+     * @param classPrototype                        Class to be initiated. Dependencies are derived automatically from class's constructor signature or if `constructorDependenciesIdentifiers` is provided.
+     * @param constructorDependenciesIdentifiers    Manually provide dependencies. Useful if code was obfuscated and signature don't infer dependencies names.
+     * @returns                                     Instance of the give class
+     */
     public async initiate<T>(classPrototype: Class<T>, constructorDependenciesIdentifiers?: ModuleKey[]) {
         const modulesNames = constructorDependenciesIdentifiers || Helpers.getParamNames(classPrototype);
         const deps = await this.require(modulesNames);
         return <T>Reflect.construct(classPrototype, deps);
     }
 
+    /**
+     * Asynchronously injects dependencies into a given function and the returned value will be registered as a new module.
+     * @param moduleIdentifier  The identifier of the new compound module
+     * @param injectFunc        Function with arguments, where is argument is a dependency to be injected. Dependency modules are extracted automatically from argument names or if `moduleIdentifiers` is provided will use that as identifiers and will inject them based on argument position.
+     * @returns                 Instance the new compound module
+     */
     public async injectAndRegister<T>(moduleIdentifier: ModuleKey, injectFunc: (...args) => T) {
         const instance = await this.inject(injectFunc);
-        this.register(moduleIdentifier, instance);
+        return this.register(moduleIdentifier, instance);
     }
 
-    public async requireSingle(moduleIdentifier: ModuleKey) {
+    /**
+     * Check if there are any pending resolution for `require`
+     */
+    public hasPendingRequireRequests() {
+        return this._pendingRequireRequests.length > 0;
+    }
+
+    protected async requireSingle(moduleIdentifier: ModuleKey) {
         const existingModule = this.modules[moduleIdentifier];
         if (existingModule != null) {
             return existingModule;
@@ -58,10 +104,6 @@ export default class DependencyInjector {
         this._pendingRequireRequests.push(pendingRequire);
 
         return pendingRequire.promise;
-    }
-
-    public hasPendingRequireRequests() {
-        return this._pendingRequireRequests.length > 0;
     }
 
     private _recheckPendingRequireRequestsAndTrigger<T = any>(newRegisteredModuleIdentifier: ModuleKey, newInstance: T) {

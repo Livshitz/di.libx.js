@@ -34,7 +34,7 @@ describe('dependencyInjector main tests', () => {
         const moduleName = 'test';
         di.register(moduleName, <any>myFunc);
 
-        let dep: typeof myFunc = await di.requireSingle(moduleName);
+        let [dep] = <[typeof myFunc]>await di.require([moduleName]);
         expect(typeof dep).toBe(typeof myFunc);
 
         let res = dep(2);
@@ -51,7 +51,7 @@ describe('dependencyInjector main tests', () => {
         };
         di.register(moduleName, myObj);
 
-        let dep: typeof myObj = await di.requireSingle(moduleName);
+        let [dep] = <[typeof myObj]>await di.require([moduleName]);
 
         expect(dep.a).toBe(1);
 
@@ -62,7 +62,7 @@ describe('dependencyInjector main tests', () => {
         const symb = Symbol('test');
         di.register(symb, <any>myFunc);
 
-        let dep: typeof myFunc = await di.requireSingle(symb);
+        let [dep] = <[typeof myFunc]>await di.require([symb]);
         expect(typeof dep).toBe(typeof myFunc);
 
         let res = dep(2);
@@ -74,7 +74,8 @@ describe('dependencyInjector main tests', () => {
     test('Async single register and require', async (done) => {
         const moduleName = 'test';
 
-        di.requireSingle(moduleName).then((dep: typeof myFunc) => {
+        di.require([moduleName]).then((deps: any[]) => {
+            const dep = deps[0];
             expect(typeof dep).toBe(typeof myFunc);
 
             let res = dep(2);
