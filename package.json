@@ -1,53 +1,53 @@
 {
-  "name": "di.libx.js",
-  "version": "1.0.1",
-  "main": "./build/index",
-  "types": "./build",
-  "license": "MIT",
-  "author": "",
-  "scripts": {
-    "build": "tsc",
-    "build-browser": "npx -p pax.libx.js pax-browserify src/browser.ts dist -y --minify",
-    "watch": "tsc -w",
-    "main": "node build/Main.js",
-    "test": "jest",
-    "test:ci": "jest --ci --reporters=default --reporters=jest-junit --coverage --coverageReporters=cobertura --coverageReporters=html",
-    "bump": "./bump.sh",
-    "format": "prettier --config .prettierrc 'src/**/*.ts' 'tests/**/*.ts' --write"
-  },
-  "files": [
-    "build/**",
-    "dist/**",
-    "src/**",
-    "*.js",
-    "*.ts"
-  ],
-  "dependencies": {
-    "concurrency.libx.js": "^0.2.23",
-    "typescript": "^3.9.3"
-  },
-  "devDependencies": {
-    "@types/jest": "^25.1.2",
-    "@types/node": "^13.7.1",
-    "jest": "^25.1.0",
-    "jest-junit": "^10.0.0",
-    "jest-junit-reporter": "^1.1.0",
-    "prettier": "^2.2.1",
-    "ts-jest": "^25.2.0"
-  },
-  "jest": {
-    "coverageReporters": [
-      "cobertura",
-      "html"
-    ]
-  },
-  "jest-junit": {
-    "suiteName": "jest tests",
-    "outputDirectory": "build/test_reports",
-    "output": "./.tmp/test/TEST-RESULTS.xml",
-    "classNameTemplate": "{classname} - {title}",
-    "titleTemplate": "{classname} - {title}",
-    "ancestorSeparator": " > ",
-    "usePathForSuiteName": "true"
-  }
+    "name": "di.libx.js",
+    "version": "1.0.1",
+    "main": "./build/index",
+    "types": "./build",
+    "license": "MIT",
+    "author": "",
+    "scripts": {
+        "build": "tsc",
+        "build-browser": "npx -p pax.libx.js pax-browserify src/browser.ts dist -y --minify",
+        "watch": "tsc -w",
+        "main": "node build/Main.js",
+        "test": "jest",
+        "test:ci": "jest --ci --reporters=default --reporters=jest-junit --coverage --coverageReporters=cobertura --coverageReporters=html",
+        "bump": "./bump.sh",
+        "format": "prettier --config .prettierrc 'src/**/*.ts' 'tests/**/*.ts' --write"
+    },
+    "files": [
+        "build/**",
+        "dist/**",
+        "src/**",
+        "*.js",
+        "*.ts"
+    ],
+    "dependencies": {
+        "concurrency.libx.js": "^0.2.23",
+        "typescript": "^3.9.3"
+    },
+    "devDependencies": {
+        "@types/jest": "^25.1.2",
+        "@types/node": "^13.7.1",
+        "jest": "^25.1.0",
+        "jest-junit": "^10.0.0",
+        "jest-junit-reporter": "^1.1.0",
+        "prettier": "^2.2.1",
+        "ts-jest": "^25.2.0"
+    },
+    "jest": {
+        "coverageReporters": [
+            "cobertura",
+            "html"
+        ]
+    },
+    "jest-junit": {
+        "suiteName": "jest tests",
+        "outputDirectory": "build/test_reports",
+        "output": "./.tmp/test/TEST-RESULTS.xml",
+        "classNameTemplate": "{classname} - {title}",
+        "titleTemplate": "{classname} - {title}",
+        "ancestorSeparator": " > ",
+        "usePathForSuiteName": "true"
+    }
 }
