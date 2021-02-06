@@ -1,4 +1,4 @@
-import DependencyInjector from '../src/DependencyInjector';
+import { DependencyInjector } from '../src/DependencyInjector';
 import { sleep, Deferred } from 'concurrency.libx.js';
 
 class MyClass {

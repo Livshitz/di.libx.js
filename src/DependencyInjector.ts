@@ -6,7 +6,7 @@ export type ModuleKey = string | symbol;
 /**
  *
  */
-export default class DependencyInjector {
+export class DependencyInjector {
     public modules: Map<ModuleKey, any> = null;
     public parent: DependencyInjector = null;
     private _options = new ModuleOptions();
@@ -143,3 +143,5 @@ class PendingRequireRequest<T = any> {
 }
 
 export class ModuleOptions {}
+
+export default new DependencyInjector();
