@@ -1,3 +1,4 @@
-import DependencyInjector from './DependencyInjector';
+import instance, { DependencyInjector } from './DependencyInjector';
 
-export default DependencyInjector;
+export { DependencyInjector };
+export default instance;
