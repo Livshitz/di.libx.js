@@ -33,7 +33,7 @@ jobs:
                   yarn build-browser
             - run: yarn test
             - name: Update Changelog
-            - uses: heinrichreimer/github-changelog-generator-action@v2.1.1
+              uses: heinrichreimer/github-changelog-generator-action@v2.1.1
               with:
                   token: $
                   issues: true
