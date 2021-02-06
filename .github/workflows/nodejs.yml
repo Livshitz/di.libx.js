@@ -4,43 +4,43 @@
 name: Node.js CI
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    push:
+        branches: [master]
+    pull_request:
+        branches: [master]
 
 jobs:
-  build:
-    if: "!contains(github.event.head_commit.message, 'skip-ci')"
+    build:
+        if: "!contains(github.event.head_commit.message, 'skip-ci')"
 
-    runs-on: ubuntu-latest
+        runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [10.x]
+        strategy:
+            matrix:
+                node-version: [10.x]
 
-    steps:
-    - uses: actions/checkout@v2
-    # Setup .npmrc file to publish to npm
-    - uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }}
-        registry-url: 'https://registry.npmjs.org'
-        scope: '@octocat' # Defaults to the user or organization that owns the workflow file:  
-    - run: yarn --frozen-lockfile
-    - name: Build
-      run: |
-        yarn build
-    - name: Build-browser
-      if: github.ref == 'refs/heads/master'
-      run: |
-        yarn build-browser
-    - run: yarn test
-    - name: Bump & Publish
-      if: github.ref == 'refs/heads/master'
-      run: | 
-        git config user.email "elya.livshitz@gmail.com"
-        git config user.name "Elya Livshitz"
-        yarn bump
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        steps:
+            - uses: actions/checkout@v2
+            # Setup .npmrc file to publish to npm
+            - uses: actions/setup-node@v1
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  registry-url: 'https://registry.npmjs.org'
+                  scope: '@octocat' # Defaults to the user or organization that owns the workflow file:
+            - run: yarn --frozen-lockfile
+            - name: Build
+              run: |
+                  yarn build
+            - name: Build-browser
+              if: github.ref == 'refs/heads/master'
+              run: |
+                  yarn build-browser
+            - run: yarn test
+            - name: Bump & Publish
+              if: github.ref == 'refs/heads/master'
+              run: |
+                  git config user.email "$GITHUB_ACTOR@users.noreply.github.com
+                  git config user.name "$GITHUB_ACTOR"
+                  yarn bump
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
