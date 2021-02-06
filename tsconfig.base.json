@@ -1,22 +1,18 @@
 {
-	"compilerOptions": {
-		"target": "es6",
-		"module": "commonjs",
-		"moduleResolution": "node",
-		"removeComments": true,
-		"preserveConstEnums": true,
-		"experimentalDecorators": true,
-		"sourceMap": true,
-		"outDir": "./build/",
-		"noImplicitAny": false,
-		"typeRoots": ["node_modules/@types", "."],
-		"inlineSources": true,
-		"skipLibCheck": true,
-		"declaration": true,
-		"resolveJsonModule": true,
-		"types": [ 	
-			"jest",
-			"node"
-		]
-	},
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "preserveConstEnums": true,
+        "experimentalDecorators": true,
+        "sourceMap": true,
+        "outDir": "./build/",
+        "noImplicitAny": false,
+        "typeRoots": ["node_modules/@types", "."],
+        "inlineSources": true,
+        "skipLibCheck": true,
+        "declaration": true,
+        "resolveJsonModule": true,
+        "types": ["jest", "node"]
+    }
 }
