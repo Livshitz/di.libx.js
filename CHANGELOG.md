@@ -19,6 +19,7 @@
 **Merged pull requests:**
 
 - + add support for parent container in constructor and in `require` [\#13](https://github.com/Livshitz/di.libx.js/pull/13)
+- Feature/autowire [\#12](https://github.com/Livshitz/di.libx.js/pull/12)
 
 ## [1.0.1](https://github.com/Livshitz/di.libx.js/tree/1.0.1) (2021-01-30)
 
@@ -27,10 +28,6 @@
 **Implemented enhancements:**
 
 - Add support for automatic module constructor dependency resolution [\#7](https://github.com/Livshitz/di.libx.js/issues/7)
-
-**Merged pull requests:**
-
-- Feature/autowire [\#12](https://github.com/Livshitz/di.libx.js/pull/12)
 
 ## [0.2.0](https://github.com/Livshitz/di.libx.js/tree/0.2.0) (2021-01-29)
 
