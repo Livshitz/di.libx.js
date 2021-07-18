@@ -38,16 +38,27 @@ export class DependencyInjector {
     }
 
     /**
+     * Asynchronously require a module.
+     * If the module isn't currently available will wait until it become available.
+     * Beware of dead-lock if the promise is awaited in same context where the dependency is later registered.
+     * @param moduleIdentifier Module's unique identifier 
+     * @return                  Returns a promise that can be awaited until the dependency is ready
+     */
+    public async require<T=any>(moduleIdentifier: ModuleKey): Promise<T> {
+        const promises: Promise<T>[] = [];
+
+        return await  this.requireSingle(moduleIdentifier);
+    }
+
+    /**
      * Asynchronously require array of modules.
      * If not all modules are currently available will wait until they become available.
      * Beware of dead-lock if the promise is awaited in same context where the dependency is later registered.
      * @param moduleIdentifiers Unique identifier as single or array
      * @return                  Returns a promise that can be awaited until ALL dependencies are ready
      */
-    public async require(moduleIdentifiers: ModuleKey | ModuleKey[]) {
-        const promises: Promise<any>[] = [];
-
-        if (!Array.isArray(moduleIdentifiers)) moduleIdentifiers = [moduleIdentifiers];
+    public async requireMany<T=any>(moduleIdentifiers: ModuleKey[]): Promise<T[]> {
+        const promises: Promise<T>[] = [];
 
         for (let identifier of moduleIdentifiers) {
             const p = this.requireSingle(identifier);
@@ -65,7 +76,7 @@ export class DependencyInjector {
      */
     public async inject(injectFunc: Function, moduleIdentifiers?: ModuleKey[]) {
         if (moduleIdentifiers == null) moduleIdentifiers = Helpers.getParamNames(injectFunc);
-        const modules = await this.require(moduleIdentifiers);
+        const modules = await this.requireMany(moduleIdentifiers);
         return injectFunc.apply(injectFunc, modules);
     }
 
@@ -77,7 +88,7 @@ export class DependencyInjector {
      */
     public async initiate<T>(classPrototype: Class<T>, constructorDependenciesIdentifiers?: ModuleKey[]) {
         const modulesNames = constructorDependenciesIdentifiers || Helpers.getParamNames(classPrototype);
-        const deps = await this.require(modulesNames);
+        const deps = await this.requireMany(modulesNames);
         return <T>Reflect.construct(classPrototype, deps);
     }
 

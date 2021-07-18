@@ -34,7 +34,7 @@ describe('dependencyInjector main tests', () => {
         const moduleName = 'test';
         di.register(moduleName, <any>myFunc);
 
-        let [dep] = <[typeof myFunc]>await di.require([moduleName]);
+        let dep = <typeof myFunc>await di.require(moduleName);
         expect(typeof dep).toBe(typeof myFunc);
 
         let res = dep(2);
@@ -51,7 +51,7 @@ describe('dependencyInjector main tests', () => {
         };
         di.register(moduleName, myObj);
 
-        let [dep] = <[typeof myObj]>await di.require([moduleName]);
+        let dep = <typeof myObj>await di.require(moduleName);
 
         expect(dep.a).toBe(1);
 
@@ -62,7 +62,7 @@ describe('dependencyInjector main tests', () => {
         const symb = Symbol('test');
         di.register(symb, <any>myFunc);
 
-        let [dep] = <[typeof myFunc]>await di.require([symb]);
+        let dep = <typeof myFunc>await di.require(symb);
         expect(typeof dep).toBe(typeof myFunc);
 
         let res = dep(2);
@@ -74,8 +74,7 @@ describe('dependencyInjector main tests', () => {
     test('Async single register and require', async (done) => {
         const moduleName = 'test';
 
-        di.require([moduleName]).then((deps: any[]) => {
-            const dep = deps[0];
+        di.require(moduleName).then((dep: any) => {
             expect(typeof dep).toBe(typeof myFunc);
 
             let res = dep(2);
@@ -96,7 +95,7 @@ describe('dependencyInjector main tests', () => {
         di.register(moduleNameA, (arg: number) => arg * 2);
         di.register(moduleNameB, (arg: number) => arg * 3);
 
-        let deps: typeof myFunc[] = await di.require([moduleNameA, moduleNameB]);
+        let deps: typeof myFunc[] = await di.requireMany([moduleNameA, moduleNameB]);
         expect(deps.length).toBe(2);
 
         expect(deps[0](2)).toBe(4);
@@ -233,7 +232,7 @@ describe('dependencyInjector - parent DIC', () => {
         parent.register(moduleName, <any>myFunc);
         child.register('testChild', (arg) => arg * 3);
 
-        let [dep] = <[typeof myFunc]>await child.require(moduleName);
+        let dep = <typeof myFunc>await child.require(moduleName);
         expect(typeof dep).toBe(typeof myFunc);
 
         child.inject((testChild) => {
