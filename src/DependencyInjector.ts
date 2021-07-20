@@ -38,16 +38,25 @@ export class DependencyInjector {
     }
 
     /**
+     * Synchronously get a module.
+     * @param moduleIdentifier Module's unique identifier
+     * @return                  Returns the module if found
+     */
+    public get<T = any>(moduleIdentifier: ModuleKey): T {
+        return this.modules[moduleIdentifier];
+    }
+
+    /**
      * Asynchronously require a module.
      * If the module isn't currently available will wait until it become available.
      * Beware of dead-lock if the promise is awaited in same context where the dependency is later registered.
-     * @param moduleIdentifier Module's unique identifier 
+     * @param moduleIdentifier Module's unique identifier
      * @return                  Returns a promise that can be awaited until the dependency is ready
      */
-    public async require<T=any>(moduleIdentifier: ModuleKey): Promise<T> {
+    public async require<T = any>(moduleIdentifier: ModuleKey): Promise<T> {
         const promises: Promise<T>[] = [];
 
-        return await  this.requireSingle(moduleIdentifier);
+        return await this.requireSingle(moduleIdentifier);
     }
 
     /**
@@ -57,7 +66,7 @@ export class DependencyInjector {
      * @param moduleIdentifiers Unique identifier as single or array
      * @return                  Returns a promise that can be awaited until ALL dependencies are ready
      */
-    public async requireMany<T=any>(moduleIdentifiers: ModuleKey[]): Promise<T[]> {
+    public async requireMany<T = any>(moduleIdentifiers: ModuleKey[]): Promise<T[]> {
         const promises: Promise<T>[] = [];
 
         for (let identifier of moduleIdentifiers) {
