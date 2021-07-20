@@ -58,6 +58,21 @@ describe('dependencyInjector main tests', () => {
         done();
     });
 
+    test('Single register and get - object module', async (done) => {
+        const moduleName = 'test';
+        const myObj = {
+            a: 1,
+            b: 2,
+        };
+        di.register(moduleName, myObj);
+
+        let dep = <typeof myObj>di.get(moduleName);
+
+        expect(dep.a).toBe(1);
+
+        done();
+    });
+
     test('Single register and require using a Symbol', async (done) => {
         const symb = Symbol('test');
         di.register(symb, <any>myFunc);
