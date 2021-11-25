@@ -74,7 +74,7 @@ export class DependencyInjector {
             promises.push(p);
         }
 
-        return Promise.all(promises);
+        return await Promise.all(promises);
     }
 
     /**
