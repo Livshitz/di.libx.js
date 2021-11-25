@@ -97,6 +97,21 @@ libx.di.inject(
     ['myModule']
 );
 ```
+##### Sub Container:
+```javascript
+// Register a local scoped container that inherits from the main container. 
+// All locally registered modules will be disposed once exited scope.
+const subContainer = new DependencyInjector(di);
+subContainer.register('moduleB', di.initiate(ModuleB));
+
+// Main execution point:
+subContainer.inject((moduleB) => {
+	const result = moduleB.Run(10);
+	console.log('Result: ', result);
+}).then(() => {
+	console.log('DONE!');
+});
+```
 
 Check more examples in unit-test at [tests](tests/DependencyInjector.test.ts).
 
