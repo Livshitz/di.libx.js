@@ -1,20 +1,22 @@
 import { Deferred } from 'concurrency.libx.js';
 import Helpers from './Helpers';
 
-export type ModuleKey = string | symbol;
+export type ModuleKey = string | number | symbol;
 
 /**
  *
  */
+
+type Modules<T = any> = { [key: symbol | string]: T };
+
 export class DependencyInjector {
-    public modules: Map<ModuleKey, any> = null;
+    public modules: Modules = {};
     public parent: DependencyInjector = null;
     private _options = new ModuleOptions();
     private _pendingRequireRequests: PendingRequireRequest[] = [];
 
     constructor(parent?: DependencyInjector, options?: ModuleOptions) {
         this._options = { ...this._options, ...options };
-        this.modules = <Map<ModuleKey, any>>{};
         this.parent = parent;
     }
 
@@ -25,9 +27,9 @@ export class DependencyInjector {
      * @param instance          Function or object
      * @return                  Return the instance itself
      */
-    public register<T>(moduleIdentifier: ModuleKey, instance: T) {
+    public register<T>(moduleIdentifier: ModuleKey, instance: T, noOverride = false) {
         if (moduleIdentifier == null) throw `DependencyInjector: identifier cannot be null`;
-        if (this.modules[moduleIdentifier] != null)
+        if (this.modules[moduleIdentifier] != null && noOverride)
             throw `DependencyInjector: Module already exists!, identifier: ${moduleIdentifier.toString()}`;
 
         this.modules[moduleIdentifier] = instance;

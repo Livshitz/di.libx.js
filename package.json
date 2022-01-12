@@ -1,6 +1,6 @@
 {
     "name": "di.libx.js",
-    "version": "2.1.2",
+    "version": "2.2.0",
     "main": "./build/index",
     "types": "./build",
     "license": "MIT",
@@ -24,7 +24,7 @@
     ],
     "dependencies": {
         "concurrency.libx.js": "^0.2.23",
-        "typescript": "^3.9.3"
+        "typescript": "^4.5.4"
     },
     "devDependencies": {
         "@types/jest": "^25.1.2",
