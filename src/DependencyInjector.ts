@@ -55,11 +55,10 @@ export class DependencyInjector {
      * @param moduleIdentifier Module's unique identifier
      * @return                  Returns a promise that can be awaited until the dependency is ready
      */
-    public async require<T = any>(moduleIdentifier: ModuleKey | ModuleKey[]): Promise<T | T[]> {
-        const promises: Promise<T>[] = [];
-
-        if (Helpers.isArray(moduleIdentifier)) return await this.requireMany(moduleIdentifier as ModuleKey[]);
-        else return await this.requireSingle(moduleIdentifier as ModuleKey);
+    public async require<T = any>(moduleIdentifier: ModuleKey): Promise<T> {
+        // if (Helpers.isArray(moduleIdentifier)) return await this.requireMany(moduleIdentifier as ModuleKey[]);
+        // else
+        return await this.requireSingle(moduleIdentifier as ModuleKey);
     }
 
     /**
