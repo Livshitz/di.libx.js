@@ -31,7 +31,7 @@ export default class Helpers {
         return JSON.stringify(obj) === JSON.stringify({});
     };
 
-    public static removeItemFromArr = <T=any>(arr: T[], item: T) => {
+    public static removeItemFromArr = <T = any>(arr: T[], item: T) => {
         const index = arr.indexOf(item);
         if (index > -1) {
             arr.splice(index, 1);
@@ -49,4 +49,9 @@ export default class Helpers {
 
         return typeof instance;
     };
+
+    public static isArray(obj) {
+        if (Array.isArray) return Array.isArray(obj);
+        return toString.call(obj) === '[object Array]';
+    }
 }
