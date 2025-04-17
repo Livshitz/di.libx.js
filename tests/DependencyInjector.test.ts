@@ -202,15 +202,15 @@ describe('dependencyInjector main tests', () => {
 
     test('Register async module with delayed resolution', async (done) => {
         const moduleName = 'asyncModule';
-        const asyncValue = new Promise((resolve) => {
+        const asyncValue = new Promise<number>((resolve) => {
             setTimeout(() => resolve(42), 100);
         });
 
         // Register the async module
-        const registerPromise = di.register(moduleName, asyncValue);
+        const registerPromise = di.register<number>(moduleName, asyncValue);
 
         // Try to require it before it's resolved
-        const requirePromise = di.require(moduleName);
+        const requirePromise = di.require<number>(moduleName);
 
         // Wait for both to complete
         const [registeredValue, requiredValue] = await Promise.all([registerPromise, requirePromise]);
@@ -252,18 +252,18 @@ describe('dependencyInjector main tests', () => {
 
     test('Register async module with multiple requires', async (done) => {
         const moduleName = 'multiRequireModule';
-        const asyncValue = new Promise((resolve) => {
+        const asyncValue = new Promise<{ value: number }>((resolve) => {
             setTimeout(() => resolve({ value: 42 }), 100);
         });
 
         // Register the async module
-        const registerPromise = di.register(moduleName, asyncValue);
+        const registerPromise = di.register<{ value: number }>(moduleName, asyncValue);
 
         // Try to require it multiple times before it's resolved
         const requirePromises = [
-            di.require(moduleName),
-            di.require(moduleName),
-            di.require(moduleName)
+            di.require<{ value: number }>(moduleName),
+            di.require<{ value: number }>(moduleName),
+            di.require<{ value: number }>(moduleName)
         ];
 
         // Wait for all to complete
@@ -282,15 +282,15 @@ describe('dependencyInjector main tests', () => {
         const child = new DependencyInjector(parent);
 
         const moduleName = 'parentAsyncModule';
-        const asyncValue = new Promise((resolve) => {
+        const asyncValue = new Promise<{ value: number }>((resolve) => {
             setTimeout(() => resolve({ value: 42 }), 100);
         });
 
         // Register in parent
-        await parent.register(moduleName, asyncValue);
+        await parent.register<{ value: number }>(moduleName, asyncValue);
 
         // Require from child
-        const value = await child.require(moduleName);
+        const value = await child.require<{ value: number }>(moduleName);
         expect(value.value).toBe(42);
 
         done();
@@ -354,5 +354,93 @@ describe('dependencyInjector - parent DIC', () => {
 
         let res = dep(2);
         expect(res).toBe(20);
+    });
+});
+
+describe('proxy functionality', () => {
+    test('Proxy returns existing module directly', async () => {
+        const moduleName = 'test';
+        const myObj = { value: 42, method: () => 'hello' };
+
+        await di.register(moduleName, myObj);
+        const proxiedModule = di.proxy[moduleName];
+
+        expect(proxiedModule.value).toBe(42);
+        expect(proxiedModule.method()).toBe('hello');
+    });
+
+    test('Proxy waits for module registration', async () => {
+        const moduleName = 'asyncTest';
+        const myObj = { value: 42, method: () => 'hello' };
+
+        // Start accessing the module before it's registered
+        const methodPromise = di.proxy[moduleName].method();
+        const valuePromise = (async () => {
+            const module = await di.require(moduleName);
+            return module.value;
+        })();
+
+        // Register after a delay
+        await sleep(100);
+        await di.register(moduleName, myObj);
+
+        // Check results
+        expect(await methodPromise).toBe('hello');
+        expect(await valuePromise).toBe(42);
+    });
+
+    test('Proxy handles parent DI modules', async () => {
+        const moduleName = 'parentTest';
+        const myObj = { value: 42, method: () => 'hello' };
+
+        // Create parent DI and register module
+        const parentDi = new DependencyInjector();
+        await parentDi.register(moduleName, myObj);
+
+        // Create child DI
+        const childDi = new DependencyInjector(parentDi);
+
+        // Access through child's proxy
+        const proxiedModule = childDi.proxy[moduleName];
+
+        expect(proxiedModule.value).toBe(42);
+        expect(proxiedModule.method()).toBe('hello');
+    });
+
+    test('Proxy handles async method calls', async () => {
+        const moduleName = 'asyncMethodTest';
+        const myObj = {
+            asyncMethod: async () => {
+                await sleep(100);
+                return 'async result';
+            }
+        };
+
+        // Start accessing the method before registration
+        const methodPromise = di.proxy[moduleName].asyncMethod();
+
+        // Register after a delay
+        await sleep(50);
+        await di.register(moduleName, myObj);
+
+        // Check result
+        expect(await methodPromise).toBe('async result');
+    });
+
+    test('Proxy preserves method arguments', async () => {
+        const moduleName = 'argsTest';
+        const myObj = {
+            method: (a: number, b: string) => `${a}-${b}`
+        };
+
+        // Start accessing the method before registration
+        const methodPromise = di.proxy[moduleName].method(42, 'test');
+
+        // Register after a delay
+        await sleep(50);
+        await di.register(moduleName, myObj);
+
+        // Check result
+        expect(await methodPromise).toBe('42-test');
     });
 });

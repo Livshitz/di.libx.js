@@ -2,16 +2,17 @@
 
 # 💉 di.libx.js
 
-> Lightweight & non intrusive Dependency Injection module that supports async/deferred resolution and uglified support for Typescript and JavaScript in 3.3kB gzipped (14.7kB on disk). Feature complete, fast, reliable and well tested.
+> Lightweight & non intrusive Dependency Injection module that supports async/deferred resolution and uglified support for Typescript and JavaScript in 3.3kB gzipped (14.7kB on disk). Feature complete, fast, reliable and well tested. Compatible with Node.js, Bun, and browsers.
 
 ### Features:
 
 -   **Deferred resolution** - asynchronously require dependencies that are not yet available and resolve once it is.
 -   **Automatic resolve of function params** - resolve & map dependencies manually or as function's parameters
--   **NodeJS & browser** - browserified version ready to use from CDN.
+-   **NodeJS, Bun & browser** - browserified version ready to use from CDN.
 -   **Explicit or implicit dependencies** - works with uglified files by specified dependencies' names or implicitly from function/class name.
 -   **Typescript support** - specify injected instance's types.
 -   **Non Intrusive** - register any modules; your internal modules or 3rd-party modules without modifing its code. No attribute wrapping needed.
+-   **Proxy Access** - Access modules through a proxy that automatically handles async resolution.
 
 ## Use:
 
@@ -63,6 +64,39 @@ di.inject((func, anonFunc) => {
 
 // Register another dependencies. Will trigger execution of the `require`
 di.register('anonFunc', () => console.log('Anonymous func'));
+```
+
+Advanced usage:
+
+```javascript
+// Using proxy access for automatic async resolution
+const di = new DependencyInjector();
+
+// Register a module
+di.register('myService', {
+    async getData() {
+        return 'data';
+    }
+});
+
+// Access through proxy - automatically handles async resolution
+const result = await di.proxy.myService.getData();
+console.log(result); // 'data'
+
+// Register async module
+await di.registerAsync('asyncModule', Promise.resolve({
+    value: 'async value'
+}));
+
+// Register with no override protection
+await di.register('protectedModule', 'value', true); // throws if module exists
+
+// Inject and register a new module
+await di.injectAndRegister('newModule', (existingModule) => {
+    return {
+        value: existingModule.value + ' enhanced'
+    };
+});
 ```
 
 More examples:
