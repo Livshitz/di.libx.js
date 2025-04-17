@@ -21,6 +21,39 @@ export class DependencyInjector {
     }
 
     /**
+     * Proxy access to modules that automatically waits for registration if needed
+     */
+    public get proxy(): Modules {
+        return new Proxy({} as Modules, {
+            get: (target, prop: string | symbol) => {
+                const moduleIdentifier = prop as ModuleKey;
+                const existingModule = this.modules[moduleIdentifier];
+
+                if (existingModule != null) {
+                    return existingModule;
+                }
+
+                if (this.parent != null) {
+                    const parentModule = this.parent.modules[moduleIdentifier];
+                    if (parentModule != null) {
+                        return parentModule;
+                    }
+                }
+
+                // If module doesn't exist, return a proxy that will wait for registration
+                return new Proxy({}, {
+                    get: (_, method) => {
+                        return async (...args: any[]) => {
+                            const instance = await this.require(moduleIdentifier);
+                            return (instance as any)[method](...args);
+                        };
+                    }
+                });
+            }
+        });
+    }
+
+    /**
      * Register an instance by it's identifier, so it could be required later.
      * Will trigger all pending requires if exists and waiting for this specific module (by identifier).
      * If the instance is a Promise, it will be resolved before triggering any pending requires.
