@@ -23,20 +23,59 @@ export class DependencyInjector {
     /**
      * Register an instance by it's identifier, so it could be required later.
      * Will trigger all pending requires if exists and waiting for this specific module (by identifier).
+     * If the instance is a Promise, it will be resolved before triggering any pending requires.
      * @param moduleIdentifier  Unique identifier. Registering with existing identifier will throw.
-     * @param instance          Function or object
-     * @return                  Return the instance itself
+     * @param instance          Function, object, or Promise
+     * @param noOverride        If true, will throw if module already exists
+     * @return                  Returns a Promise that resolves with the final instance
      */
-    public register<T>(moduleIdentifier: ModuleKey, instance: T, noOverride = false) {
+    public async register<T>(moduleIdentifier: ModuleKey, instance: T | Promise<T>, noOverride = false): Promise<T> {
         if (moduleIdentifier == null) throw `DependencyInjector: identifier cannot be null`;
         if (this.modules[moduleIdentifier] != null && noOverride)
             throw `DependencyInjector: Module already exists!, identifier: ${moduleIdentifier.toString()}`;
 
+        // Store the instance/promise in modules while it's resolving
         this.modules[moduleIdentifier] = instance;
 
-        this._recheckPendingRequireRequestsAndTrigger(moduleIdentifier, instance);
+        // If instance is a Promise, wait for it to resolve
+        const resolvedInstance = instance instanceof Promise ? await instance : instance;
 
-        return instance;
+        // Update the module with the resolved value
+        this.modules[moduleIdentifier] = resolvedInstance;
+
+        // Trigger any pending requires with the resolved value
+        this._recheckPendingRequireRequestsAndTrigger(moduleIdentifier, resolvedInstance);
+
+        return resolvedInstance;
+    }
+
+    /**
+     * Register an async module by its identifier.
+     * The instance can be either a Promise or a regular value.
+     * If it's a Promise, it will be resolved before triggering any pending requires.
+     * @param moduleIdentifier  Unique identifier. Registering with existing identifier will throw.
+     * @param instance          Promise or regular value
+     * @param noOverride        If true, will throw if module already exists
+     * @return                  Returns a Promise that resolves with the final instance
+     */
+    public async registerAsync<T>(moduleIdentifier: ModuleKey, instance: T | Promise<T>, noOverride = false): Promise<T> {
+        if (moduleIdentifier == null) throw `DependencyInjector: identifier cannot be null`;
+        if (this.modules[moduleIdentifier] != null && noOverride)
+            throw `DependencyInjector: Module already exists!, identifier: ${moduleIdentifier.toString()}`;
+
+        // Store the promise in modules while it's resolving
+        this.modules[moduleIdentifier] = instance;
+
+        // If instance is a Promise, wait for it to resolve
+        const resolvedInstance = instance instanceof Promise ? await instance : instance;
+
+        // Update the module with the resolved value
+        this.modules[moduleIdentifier] = resolvedInstance;
+
+        // Trigger any pending requires with the resolved value
+        this._recheckPendingRequireRequestsAndTrigger(moduleIdentifier, resolvedInstance);
+
+        return resolvedInstance;
     }
 
     /**

@@ -191,11 +191,107 @@ describe('dependencyInjector main tests', () => {
 
     test('Unregister a module', async (done) => {
         const moduleName = 'test';
-        di.register(moduleName, <any>myFunc);
+        await di.register(moduleName, <any>myFunc);
         expect(Object.keys(di.modules).length).toBe(1);
 
         di.unregister(moduleName);
         expect(Object.keys(di.modules).length).toBe(0);
+
+        done();
+    });
+
+    test('Register async module with delayed resolution', async (done) => {
+        const moduleName = 'asyncModule';
+        const asyncValue = new Promise((resolve) => {
+            setTimeout(() => resolve(42), 100);
+        });
+
+        // Register the async module
+        const registerPromise = di.register(moduleName, asyncValue);
+
+        // Try to require it before it's resolved
+        const requirePromise = di.require(moduleName);
+
+        // Wait for both to complete
+        const [registeredValue, requiredValue] = await Promise.all([registerPromise, requirePromise]);
+
+        expect(registeredValue).toBe(42);
+        expect(requiredValue).toBe(42);
+
+        done();
+    });
+
+    test('Register sync module', async (done) => {
+        const moduleName = 'syncModule';
+        const syncValue = 123;
+
+        const registeredValue = await di.register(moduleName, syncValue);
+        const requiredValue = await di.require(moduleName);
+
+        expect(registeredValue).toBe(123);
+        expect(requiredValue).toBe(123);
+
+        done();
+    });
+
+    test('Register async module with error', async (done) => {
+        const moduleName = 'errorModule';
+        const errorValue = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Test error')), 100);
+        });
+
+        try {
+            await di.register(moduleName, errorValue);
+            fail('Should have thrown an error');
+        } catch (error) {
+            expect(error.message).toBe('Test error');
+        }
+
+        done();
+    });
+
+    test('Register async module with multiple requires', async (done) => {
+        const moduleName = 'multiRequireModule';
+        const asyncValue = new Promise((resolve) => {
+            setTimeout(() => resolve({ value: 42 }), 100);
+        });
+
+        // Register the async module
+        const registerPromise = di.register(moduleName, asyncValue);
+
+        // Try to require it multiple times before it's resolved
+        const requirePromises = [
+            di.require(moduleName),
+            di.require(moduleName),
+            di.require(moduleName)
+        ];
+
+        // Wait for all to complete
+        const [registeredValue, ...requiredValues] = await Promise.all([registerPromise, ...requirePromises]);
+
+        expect(registeredValue.value).toBe(42);
+        requiredValues.forEach(value => {
+            expect(value.value).toBe(42);
+        });
+
+        done();
+    });
+
+    test('Register async module with parent container', async (done) => {
+        const parent = new DependencyInjector();
+        const child = new DependencyInjector(parent);
+
+        const moduleName = 'parentAsyncModule';
+        const asyncValue = new Promise((resolve) => {
+            setTimeout(() => resolve({ value: 42 }), 100);
+        });
+
+        // Register in parent
+        await parent.register(moduleName, asyncValue);
+
+        // Require from child
+        const value = await child.require(moduleName);
+        expect(value.value).toBe(42);
 
         done();
     });
