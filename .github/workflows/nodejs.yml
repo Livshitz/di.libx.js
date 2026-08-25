@@ -27,7 +27,13 @@ jobs:
                   node-version: ${{ matrix.node-version }}
                   registry-url: 'https://registry.npmjs.org'
                   scope: '@octocat' # Defaults to the user or organization that owns the workflow file:
-            - run: yarn --frozen-lockfile
+            - uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: latest
+            # Install from the COMMITTED bun.lock. `yarn --frozen-lockfile` was a no-op here (no yarn.lock ->
+            # "info No lockfile found."), so every CI run re-resolved every ^ range to latest and the build was
+            # not reproducible. Scripts still run under yarn; only the install step changed.
+            - run: bun install --frozen-lockfile
             - name: Build
               run: |
                   yarn build
