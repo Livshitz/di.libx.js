@@ -7,7 +7,7 @@
     "author": "",
     "scripts": {
         "build": "tsc",
-        "build-browser": "npx -p pax.libx.js pax-browserify src/browser.ts dist -y --minify",
+        "build-browser": "npx -p pax.libx.js@0.6.28 pax-browserify src/browser.ts dist -y --minify",
         "watch": "tsc -w",
         "main": "node build/Main.js",
         "test": "jest",
